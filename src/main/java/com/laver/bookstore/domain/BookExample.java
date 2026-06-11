@@ -113,7 +113,17 @@ public class BookExample {
             addCriterion(condition, new java.sql.Date(value.getTime()), property);
         }
 
-
+        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
+            if (values == null || values.size() == 0) {
+                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
+            }
+            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
+            Iterator<Date> iter = values.iterator();
+            while (iter.hasNext()) {
+                dateList.add(new java.sql.Date(iter.next().getTime()));
+            }
+            addCriterion(condition, dateList, property);
+        }
 
         protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
             if (value1 == null || value2 == null) {

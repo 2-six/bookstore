@@ -104,7 +104,12 @@ public class BookOrderController {
 		model.addAttribute("orderDetails", orderDetails);
 		return "manage/order";
 	}
-
+	@RequestMapping("/delserchBookOrder")
+	public ModelAndView delserchBookOrder(Integer oid){
+		bookOrderService.deleteByPrimaryKey(oid);
+		orderDetailService.deleteByOid(oid);
+		return new ModelAndView("redirect:/BookOrder.do");
+	}
 	@RequestMapping("/orderModify")
 	public ModelAndView orderModify(Integer oid,String oname,String address,String status){
 		BookOrder bookOrder = new BookOrder();
