@@ -22,13 +22,7 @@ public class BookOrderService implements IBookOrderService{
 		return bookOrderMapper.insert(bookOrder);
 	}
 
-	@Override
-	public int selectOid(BookOrderExample example) {
-		// TODO Auto-generated method stub
-		List<BookOrder> bookOrders = bookOrderMapper.selectByExample(example);
-		BookOrder bookOrder=bookOrders.get(0);
-		return bookOrder.getOid();
-	}
+
 
 	@Override
 	public List<BookOrder> selectByExample(BookOrderExample example) {
