@@ -10,7 +10,7 @@
     <jsp:include page="../static/head.html"/>
     <link rel="stylesheet" href="<%=basePath %>css/base.css">
 
-    <!-- 强制所有按钮变绿色 -->
+
     <style>
     button,
     input[type="submit"],
@@ -36,7 +36,7 @@
 </head>
 <body>
 <div id="header" class="wrap">
-    <!-- 已删除左上角LOGO -->
+
     <div class="help">
         <a href="cartPage.do" class="shopping">查看购物车</a>
         <c:if test="${sessionScope.user!=null}"><a

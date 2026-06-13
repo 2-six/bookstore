@@ -13,7 +13,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<link rel="shortcut icon" href="${pageContext.request.contextPath}/static/favicon.ico" />
 	<jsp:include page="../static/head.html"/>
 
-	<!-- 全局强制按钮绿色（首页+登录+注册全统一） -->
 	<style>
 	button,
 	input[type="submit"],
@@ -38,7 +37,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </head>
 <body>
 <div id="header" class="wrap">
-	<!-- 已删除左上角LOGO -->
+
 	<div class="help">
 		<a href="cartPage.do" class="shopping">查看购物车</a>
 		<c:if test="${sessionScope.user!=null}">

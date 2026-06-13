@@ -10,7 +10,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<jsp:include page="../static/head.html"/>
 	<link rel="stylesheet" href="${pageContext.request.contextPath}/css/base.css">
 
-	<!-- 全局强制绿色按钮，覆盖所有页面 -->
+
 	<style>
 	button,
 	input[type="submit"],
@@ -38,7 +38,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </head>
 <body>
 <div id="header" class="wrap">
-	<!-- 已删除左上角LOGO -->
+
 	<div class="help">
 		<a href="cartPage.do" class="shopping">查看购物车</a>
 		<c:if test="${sessionScope.user!=null}">
