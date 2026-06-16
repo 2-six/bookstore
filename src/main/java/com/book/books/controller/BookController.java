@@ -1,0 +1,236 @@
+package com.book.books.controller;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.book.books.domain.Book;
+import com.book.books.domain.BookExample;
+import com.book.books.domain.Comment;
+import com.book.books.service.IBookService;
+import com.book.books.service.ICommentService;
+import com.book.books.util.Constant;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+@Controller
+public class BookController {
+    @Resource
+    private IBookService bookService;
+
+    @Resource
+    private ICommentService commentService;
+
+    @RequestMapping("/index")
+    public String index(Model model, HttpServletRequest request) {
+        Set<String> bts = bookService.bookType();
+        BookExample example = new BookExample();
+        List<Book> books = bookService.selectByExample(example);
+        List<Book> Cbooks = getCookies(request);
+        model.addAttribute("books", books);
+        model.addAttribute("Cbooks", Cbooks);
+        model.addAttribute("bts", bts);
+        return "front/index";
+    }
+
+    @RequestMapping("/addBook")
+    public ModelAndView addUser(String bname, String detail, String pirce, String type, String writer, String printer, String dateString, String image, Integer store) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = null;
+        try {
+            date = sdf.parse(dateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Book book = new Book();
+        book.setBname(bname);
+        book.setDetail(detail);
+        book.setPirce(pirce);
+        book.setType(type);
+        book.setWriter(writer);
+        book.setPrinter(printer);
+        book.setDate(date);
+        book.setImage(image);
+        book.setStore(store);
+        bookService.addBook(book);
+        return new ModelAndView("redirect:/manaBook.do");
+    }
+
+    @RequestMapping("/manaBook")
+    public String manaBook(Integer pageNum, Model model) {
+        if (pageNum != null) {
+            PageHelper.startPage(pageNum, Constant.MB_PAGE_SIZE);
+        } else {
+            PageHelper.startPage(1, Constant.MB_PAGE_SIZE);
+        }
+        List<Book> books = bookService.findAllBook();
+        PageInfo<Book> pageInfo = new PageInfo<Book>(books);
+        model.addAttribute("pageInfo", pageInfo);
+        model.addAttribute("books", books);
+        return "manage/product";
+    }
+
+    @RequestMapping("/delBook")
+    public ModelAndView deleteUser(Integer bid) {
+        bookService.delById(bid);
+        return new ModelAndView("redirect:/manaBook.do");
+    }
+
+    @RequestMapping("/modifyBookPage")
+    public String modifyUserPage(Model model, Integer bid) {
+        Book book = bookService.findById(bid);
+        Set<String> bts = bookService.bookType();
+        model.addAttribute("bts", bts);
+        model.addAttribute("book", book);
+        return "manage/product-modify";
+    }
+
+    @RequestMapping("/addproductPage")
+    public String addproductPage(Model model) {
+        Set<String> bts = bookService.bookType();
+        model.addAttribute("bts", bts);
+        return "manage/product-add";
+    }
+
+    @RequestMapping("/modifyBook")
+    public ModelAndView modifyBook(Book book) {
+        if (book.getImage() == null || book.getImage().equals("")) {
+            book.setImage(null);
+        }
+        bookService.modifyBook(book);
+        return new ModelAndView("redirect:/manaBook.do");
+    }
+
+    @RequestMapping("/bookView")
+    public String bookView(Integer pageNum, Integer bid, Model model, HttpServletRequest request, HttpServletResponse response) {
+        setCookies(bid, request, response);
+        Book book = bookService.findById(bid);
+        String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(book.getDate());
+        Set<String> bts = bookService.bookType();
+        List<Book> Cbooks = getCookies(request);
+
+        if (pageNum != null) {
+            PageHelper.startPage(pageNum, Constant.C_PAGE_SIZE);
+        } else {
+            PageHelper.startPage(1, Constant.C_PAGE_SIZE);
+        }
+
+        List<Comment> comments = commentService.selectBybid(bid);
+        PageInfo<Comment> pageInfo = new PageInfo<Comment>(comments);
+        model.addAttribute("Cbooks", Cbooks);
+        model.addAttribute("bts", bts);
+        model.addAttribute("book", book);
+        model.addAttribute("dateStr", dateStr);
+        model.addAttribute("comments", comments);
+        model.addAttribute("pageInfo", pageInfo);
+        return "front/product-view";
+    }
+
+    @RequestMapping("/productList")
+    public String productList(Integer pageNum, Model model, String type, String key, HttpServletRequest request, HttpSession session) {
+        Set<String> bts = bookService.bookType();
+        model.addAttribute("bts", bts);
+
+        BookExample example = new BookExample();
+
+        if (type != null && !type.equals("")) {
+            example.createCriteria().andTypeEqualTo(type);
+        }
+
+        if (key != null && !key.equals("")) {
+            example.createCriteria().andBnameLike("%" + key + "%");
+        }
+
+        if (pageNum == null) pageNum = 1;
+        PageHelper.startPage(pageNum, 12);
+
+        List<Book> books = bookService.selectByExample(example);
+        PageInfo<Book> pageInfo = new PageInfo<>(books);
+
+        List<Book> Cbooks = getCookies(request);
+        model.addAttribute("books", books);
+        model.addAttribute("Cbooks", Cbooks);
+        model.addAttribute("pageInfo", pageInfo);
+
+        return "front/product-list";
+    }
+
+    List<Book> getCookies(HttpServletRequest request) {
+        List<Book> Cbooks = new ArrayList<Book>();
+        String list = "";
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null && cookies.length > 0) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("ListViewCookie")) {
+                    list = c.getValue();
+                }
+            }
+        }
+
+        if (!list.equals("")) {
+            String[] arr = list.split(",");
+            for (String s : arr) {
+                try {
+                    Book book = bookService.findById(Integer.parseInt(s));
+                    if (book != null) {
+                        Cbooks.add(book);
+                    }
+                } catch (Exception e) {
+                    continue;
+                }
+            }
+        }
+        return Cbooks;
+    }
+
+    void setCookies(Integer bid, HttpServletRequest request, HttpServletResponse response) {
+        boolean flag = true;
+        String list = "";
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null && cookies.length > 0) {
+            for (Cookie c : cookies) {
+                if (c.getName().equals("ListViewCookie")) {
+                    list = c.getValue();
+                }
+            }
+        }
+
+        if (!list.equals("")) {
+            String[] arr = list.split(",");
+            for (String s : arr) {
+                try {
+                    if (Integer.parseInt(s) == bid) {
+                        flag = false;
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        if (flag) {
+            list += bid + ",";
+        }
+
+        String[] arr = list.split(",");
+        if (arr != null && arr.length >= 10) {
+            list = "";
+        }
+
+        Cookie cookie = new Cookie("ListViewCookie", list);
+        response.addCookie(cookie);
+    }
+}
